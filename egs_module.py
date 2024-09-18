@@ -42,7 +42,6 @@ def get_current_games_data():
                 games_data += f'{emoji_hourglass} offer valid until:\n'
                 games_data += f'  {date_format(offer_date)}\n'
                 games_data += '\n'
-    print(f'printing game data')
     return games_data, games_pic_links
 
 def get_upcoming_games_data():

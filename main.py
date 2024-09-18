@@ -56,28 +56,33 @@ async def handle_start_command(event):
     elif isinstance(chat_id, (PeerUser)):
         await client.send_message(chat_id, 'Got it, no more information about free games needed. See ya, friend!')
 
+@client.on(events.NewMessage(pattern='^/egs_status@epic_announcement_bot$'))
+async def handle_start_command(event):
+    chat_id = event.message.peer_id
+    status = egs_module.check_egs()
+    await client.send_message(chat_id, f'EGS status: {status}')
+
 @client.on(events.NewMessage(pattern='^/current_games@epic_announcement_bot$'))
 async def handle_start_command(event):
     chat_id = event.message.peer_id
     if isinstance(chat_id, (PeerUser, PeerChat, PeerChannel)):
-        status = await egs_module.check_egs()
-        if status == 'All Systems Operational':
+        try:
             message_text, urls = egs_module.get_current_games_data()
             await client.send_file(chat_id, urls, caption=message_text)
-        else:
-            await client.send_message(chat_id, f'EGS status: {status}')
+        except Exception as exception:
+            print(exception)
+            await client.send_message(chat_id, 'Something went wrong, please check store status with /egs_status@epic_announcement_bot command')
 
 @client.on(events.NewMessage(pattern='^/upcoming_games@epic_announcement_bot$'))
 async def handle_start_command(event):
-    message_text, urls = egs_module.get_upcoming_games_data()
     chat_id = event.message.peer_id
     if isinstance(chat_id, (PeerUser, PeerChat, PeerChannel)):
-        status = await egs_module.check_egs()
-        if status == 'All Systems Operational':
-            message_text, urls = egs_module.get_current_games_data()
+        try:
+            message_text, urls = egs_module.get_upcoming_games_data()
             await client.send_file(chat_id, urls, caption=message_text)
-        else:
-            await client.send_message(chat_id, f'EGS status: {status}')
+        except Exception as exception:
+            print(exception)
+            await client.send_message(chat_id, 'Something went wrong, please check store status with /egs_status@epic_announcement_bot command')
 
 with client:
     client.run_until_disconnected()
