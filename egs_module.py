@@ -1,7 +1,12 @@
 from epicstore_api import EpicGamesStoreAPI, OfferData
-import sys
 from datetime import datetime, timezone
-import json
+import requests, os
+
+if os.name != 'nt':
+    app_path_divider = '/'
+else:
+    app_path_divider = '\\'
+
 
 emoji_bookmark = u'\U0001F516'
 emoji_gamepad = u'\U0001F3AE'
@@ -25,12 +30,18 @@ def get_current_games_data():
     tags = api.fetch_catalog_tags()['data']['Catalog']['tags']['elements']
     games_data = '\ncurrent free titles:\n\n'
     games_pic_links = []
+    image_path = os.path.dirname(__file__) + app_path_divider + 'pic_current' + app_path_divider
+    image_counter = 1
     for game in free_games:
         if game['promotions']:
             if game['promotions']['promotionalOffers']:
                 for game_image in game['keyImages']:
-                    if game_image['type'] == 'Thumbnail':
-                        games_pic_links.append(game_image['url'])
+                    if game_image['type'] == 'OfferImageTall':
+                        image = requests.get(game_image['url']).content
+                        with open(f'{image_path}{image_counter}.jpg', 'wb') as handler:
+                            handler.write(image)
+                        games_pic_links.append(f'{image_path}{image_counter}.jpg')
+                        image_counter += 1
                 games_data += f'{emoji_gamepad} {game['title']} {emoji_gamepad}\n'
                 games_data += 'tags:\n'
                 for gametag in game['tags']:
@@ -49,13 +60,19 @@ def get_upcoming_games_data():
     tags = api.fetch_catalog_tags()['data']['Catalog']['tags']['elements']
     games_data = '\nupcoming free titles:\n\n'
     games_pic_links = []
+    image_path = os.path.dirname(__file__) + app_path_divider + 'pic_upcoming' + app_path_divider
+    image_counter = 1
     for game in free_games:
         if game['promotions']:
             if game['promotions']['upcomingPromotionalOffers']:
                 if game['promotions']['upcomingPromotionalOffers'][0]['promotionalOffers'][0]['discountSetting']['discountPercentage'] == 0:
                     for game_image in game['keyImages']:
-                        if game_image['type'] == 'Thumbnail':
-                            games_pic_links.append(game_image['url'])
+                        if game_image['type'] == 'OfferImageTall':
+                            image = requests.get(game_image['url']).content
+                            with open(f'{image_path}{image_counter}.jpg', 'wb') as handler:
+                                handler.write(image)
+                            games_pic_links.append(f'{image_path}{image_counter}.jpg')
+                            image_counter += 1
                     games_data += f'{emoji_gamepad} {game['title']} {emoji_gamepad}\n'
                     games_data += 'tags:\n'
                     for gametag in game['tags']:

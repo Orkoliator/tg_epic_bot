@@ -9,6 +9,10 @@ if os.name != 'nt':
 else:
     app_path_divider = '\\'
 
+for directory in ['pic_current', 'pic_upcoming']:
+    if not os.path.exists(os.path.dirname(__file__) + app_path_divider + directory):
+        os.makedirs(os.path.dirname(__file__) + app_path_divider + directory)
+
 def read_env_from_file():
     try:
         app_variable_file = os.path.dirname(__file__) + app_path_divider + 'var.yaml'
