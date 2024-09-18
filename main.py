@@ -2,14 +2,15 @@ from telethon import TelegramClient, events
 from telethon.tl.types import PeerUser, PeerChat, PeerChannel
 import os
 import yaml
-import egs_check
+import egs_module
+
+if os.name != 'nt':
+    app_path_divider = '/'
+else:
+    app_path_divider = '\\'
 
 def read_env_from_file():
     try:
-        if os.name != 'nt':
-            app_path_divider = '/'
-        else:
-            app_path_divider = '\\'
         app_variable_file = os.path.dirname(__file__) + app_path_divider + 'var.yaml'
         with open(app_variable_file) as env_file:
             env_data = yaml.safe_load(env_file)
@@ -57,17 +58,26 @@ async def handle_start_command(event):
 
 @client.on(events.NewMessage(pattern='^/current_games@epic_announcement_bot$'))
 async def handle_start_command(event):
-    message_text, urls = egs_check.get_current_games_data()
     chat_id = event.message.peer_id
     if isinstance(chat_id, (PeerUser, PeerChat, PeerChannel)):
-        await client.send_file(chat_id, urls, caption=message_text)
+        status = await egs_module.check_egs()
+        if status == 'All Systems Operational':
+            message_text, urls = egs_module.get_current_games_data()
+            await client.send_file(chat_id, urls, caption=message_text)
+        else:
+            await client.send_message(chat_id, f'EGS status: {status}')
 
 @client.on(events.NewMessage(pattern='^/upcoming_games@epic_announcement_bot$'))
 async def handle_start_command(event):
-    message_text, urls = egs_check.get_upcoming_games_data()
+    message_text, urls = egs_module.get_upcoming_games_data()
     chat_id = event.message.peer_id
     if isinstance(chat_id, (PeerUser, PeerChat, PeerChannel)):
-        await client.send_file(chat_id, urls, caption=message_text)
+        status = await egs_module.check_egs()
+        if status == 'All Systems Operational':
+            message_text, urls = egs_module.get_current_games_data()
+            await client.send_file(chat_id, urls, caption=message_text)
+        else:
+            await client.send_message(chat_id, f'EGS status: {status}')
 
 with client:
     client.run_until_disconnected()
