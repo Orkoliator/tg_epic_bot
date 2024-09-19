@@ -26,11 +26,48 @@ def set_db():
         if sqliteConnection:
             sqliteConnection.close()
 
-def add_subscriber():
-    pass
+def add_subscriber(chat_id_int):
+    sqliteConnection = sqlite3.connect(db_file)
+    cursor = sqliteConnection.cursor()
+    sql_query = f'INSERT INTO Subscribers (ChatID) VALUES ({chat_id_int})'
+    cursor.execute(sql_query)
+    sqliteConnection.commit()
+    sqliteConnection.close()
 
-def delete_subscriber():
-    pass
+def delete_subscriber(chat_id_int):
+    sqliteConnection = sqlite3.connect(db_file)
+    cursor = sqliteConnection.cursor()
+    sql_query = f'DELETE FROM Subscribers WHERE ChatID = {chat_id_int}'
+    cursor.execute(sql_query)
+    sqliteConnection.commit()
+    sqliteConnection.close()
+
+def check_subscriber(chat_id_int):
+    sqliteConnection = sqlite3.connect(db_file)
+    cursor = sqliteConnection.cursor()
+    sql_query = f'SELECT ChatID FROM Subscribers WHERE ChatID = {chat_id_int}'
+    cursor.execute(sql_query)
+    if cursor.fetchone():
+        print(f'[DEBUG] chat {chat_id_int} is a subscriber')
+        sqliteConnection.commit()
+        sqliteConnection.close()
+        return True
+    else:
+        print(f'[DEBUG] chat {chat_id_int} is not a subscriber')
+        sqliteConnection.commit()
+        sqliteConnection.close()
+        return False
+
+def get_all_subscribers():
+    sqliteConnection = sqlite3.connect(db_file)
+    cursor = sqliteConnection.cursor()
+    check_sql_query = f'SELECT ChatID FROM Subscribers'
+    cursor.execute(check_sql_query)
+    sqliteConnection.commit()
+    subscribers_list = []
+    for chat_id in cursor:
+        subscribers_list.append(chat_id[0])
+    return subscribers_list
 
 def check_games_data(title):
     sqliteConnection = sqlite3.connect(db_file)

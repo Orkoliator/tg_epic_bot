@@ -8,8 +8,10 @@ import egs_module, sql_module
 sql_module.set_db()
 
 if os.name != 'nt':
+    print('[INFO] non-Windows paths detected')
     app_path_divider = '/'
 else:
+    print('[INFO] Windows paths detected')
     app_path_divider = '\\'
 
 for directory in ['pic_current', 'pic_upcoming']:
@@ -33,6 +35,44 @@ def set_env(env):
     else:
         return app_var_files[env]
 
+def generate_message_current():
+    try:
+        game_data_list, image_list = sql_module.get_current_game_data()
+        message_text = '\ncurrent free titles:\n\n'
+        for game_data in game_data_list:
+            message_text += f'{emoji_gamepad} {game_data['Title']} {emoji_gamepad}\n'
+            message_text += 'tags:\n'
+            for game_tag in game_data['Tag']:
+                message_text += f'  {emoji_bookmark} {game_tag}\n'
+            message_text += f' {emoji_scroll} {game_data['Description']}\n'
+            message_text += f' {emoji_hourglass} offer valid until:\n'
+            message_text += f'  {game_data['EndDate']}\n'
+        return image_list, message_text
+    except Exception as exception:
+        print(f'[ERROR] {exception}')
+        message_text = 'Something went wrong, please check store status with /egs_status@epic_announcement_bot command'
+        return None, message_text
+
+def generate_message_upcoming():
+    try:
+        game_data_list, image_list = sql_module.get_upcoming_game_data()
+        message_text = '\nupcoming free titles:\n\n'
+        for game_data in game_data_list:
+            message_text += f'{emoji_gamepad} {game_data['Title']} {emoji_gamepad}\n'
+            message_text += 'tags:\n'
+            for game_tag in game_data['Tag']:
+                message_text += f'  {emoji_bookmark} {game_tag}\n'
+            message_text += f' {emoji_scroll} {game_data['Description']}\n'
+            message_text += f'{emoji_hourglass} offer valid since:\n'
+            message_text += f'  {game_data['StartDate']}\n'
+            message_text += f'{emoji_hourglass} offer valid until:\n'
+            message_text += f'  {game_data['EndDate']}\n'
+        return image_list, message_text
+    except Exception as exception:
+        print(f'[ERROR] {exception}')
+        message_text = 'Something went wrong, please check store status with /egs_status@epic_announcement_bot command'
+        return None, message_text
+
 emoji_bookmark = u'\U0001F516'
 emoji_gamepad = u'\U0001F3AE'
 emoji_scroll = u'\U0001F4DC'
@@ -50,21 +90,31 @@ async def handle_start_command(event):
     if isinstance(chat_id, (PeerUser)):
         await client.send_message(chat_id, 'Hello friend, my name is Epic Bot. I monitor EGS free games info and share it. Please use /start_subscription@epic_announcement_bot command and I will start sharing this information in this chat, or add me to chat and start me with same command!')
 
-@client.on(events.NewMessage(pattern='^/start_subscription@epic_announcement_bot$'))
+@client.on(events.NewMessage(pattern='^/subscribe@epic_announcement_bot$'))
 async def handle_start_command(event):
     chat_id = event.message.peer_id
     if isinstance(chat_id, (PeerUser, PeerChat, PeerChannel)):
-        await client.send_message(chat_id, 'Now I will start sharing EGS free games data with you!')
-        chat_id_int = await client.get_entity(chat_id)
-        print(f'[INFO] chat to be removed: {chat_id_int}')
+        chat_id = await client.get_entity(chat_id)
+        chat_id_int = chat_id.id
+        if not sql_module.check_subscriber(chat_id_int):
+            sql_module.add_subscriber(chat_id_int)
+            print(f'[INFO] unsubscribed chat: {chat_id_int}')
+            await client.send_message(chat_id, 'Now I will start sharing EGS free games data with you!')
+        else:
+            await client.send_message(chat_id, 'Already subscribed!')
 
-@client.on(events.NewMessage(pattern='^/stop_subscription@epic_announcement_bot$'))
+@client.on(events.NewMessage(pattern='^/unsubscribe@epic_announcement_bot$'))
 async def handle_start_command(event):
     chat_id = event.message.peer_id
     if isinstance(chat_id, (PeerUser, PeerChat, PeerChannel)):
-        await client.send_message(chat_id, 'Got it, no more information about free games needed. See ya!')
-        chat_id_int = await client.get_entity(chat_id)
-        print(f'[INFO] chat to be removed: {chat_id_int}')
+        chat_id = await client.get_entity(chat_id)
+        chat_id_int = chat_id.id
+        if sql_module.check_subscriber(chat_id_int):
+            sql_module.delete_subscriber(chat_id_int)
+            print(f'[INFO] unsubscribed chat: {chat_id_int}')
+            await client.send_message(chat_id, 'Got it, no more information about free games needed. See ya!')
+        else:
+            await client.send_message(chat_id, 'Not subscribed yet!')
 
 @client.on(events.NewMessage(pattern='^/egs_status@epic_announcement_bot$'))
 async def handle_start_command(event):
@@ -76,49 +126,36 @@ async def handle_start_command(event):
 async def handle_start_command(event):
     chat_id = event.message.peer_id
     if isinstance(chat_id, (PeerUser, PeerChat, PeerChannel)):
-        try:
-            game_data_list, image_list = sql_module.get_current_game_data()
-            message_text = '\nupcoming free titles:\n\n'
-            for game_data in game_data_list:
-                message_text += f'{emoji_gamepad} {game_data['Title']} {emoji_gamepad}\n'
-                message_text += 'tags:\n'
-                for game_tag in game_data['Tag']:
-                    message_text += f'  {emoji_bookmark} {game_tag}\n'
-                message_text += f' {emoji_scroll} {game_data['Description']}\n'
-                message_text += f' {emoji_hourglass} offer valid until:\n'
-                message_text += f'  {game_data['EndDate']}\n'
+        image_list, message_text = generate_message_current()
+        if image_list != None:
             await client.send_file(chat_id, image_list, caption=message_text)
-        except Exception as exception:
-            print(f'[ERROR] {exception}')
+        else:
             await client.send_message(chat_id, 'Something went wrong, please check store status with /egs_status@epic_announcement_bot command')
 
 @client.on(events.NewMessage(pattern='^/upcoming_games@epic_announcement_bot$'))
 async def handle_start_command(event):
     chat_id = event.message.peer_id
     if isinstance(chat_id, (PeerUser, PeerChat, PeerChannel)):
-        try:
-            game_data_list, image_list = sql_module.get_upcoming_game_data()
-            message_text = '\nupcoming free titles:\n\n'
-            for game_data in game_data_list:
-                message_text += f'{emoji_gamepad} {game_data['Title']} {emoji_gamepad}\n'
-                message_text += 'tags:\n'
-                for game_tag in game_data['Tag']:
-                    message_text += f'  {emoji_bookmark} {game_tag}\n'
-                message_text += f' {emoji_scroll} {game_data['Description']}\n'
-                message_text += f'{emoji_hourglass} offer valid since:\n'
-                message_text += f'  {game_data['StartDate']}\n'
-                message_text += f'{emoji_hourglass} offer valid until:\n'
-                message_text += f'  {game_data['EndDate']}\n'
+        image_list, message_text = generate_message_upcoming()
+        if image_list != None:
             await client.send_file(chat_id, image_list, caption=message_text)
-        except Exception as exception:
-            print(f'[ERROR] {exception}')
+        else:
             await client.send_message(chat_id, 'Something went wrong, please check store status with /egs_status@epic_announcement_bot command')
+
+async def notify_subscribers():
+    image_list, message_text = generate_message_current()
+    if image_list != None:
+        subscribers_list = sql_module.get_all_subscribers()
+        for subscriber in subscribers_list:
+            await client.send_file(subscriber, image_list, caption=message_text)
 
 async def scheduled_egs_check():
     while True:
         print('[INFO] data is being updated')
         egs_module.game_data_update()
         print('[INFO] data was updated')
+        await notify_subscribers()
+        print('[INFO] subscribers were notified')
         await asyncio.sleep(86400)
 
 try:
@@ -128,10 +165,3 @@ try:
     loop.run_forever()
 except KeyboardInterrupt:
     print('[ERROR] exited manually')
-
-'''
-async def send_hello_message():    
-    await client.send_message(266221374, 'hello there!')
-
-client.loop.run_until_complete(send_hello_message())
-'''
