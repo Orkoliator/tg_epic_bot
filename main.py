@@ -1,8 +1,11 @@
 from telethon import TelegramClient, events
-from telethon.tl.types import PeerUser, PeerChat, PeerChannel
+from telethon.tl.types import PeerUser, PeerChat, PeerChannel, DocumentAttributeVideo
 import os
 import yaml
-import egs_module
+import egs_module, sql_module
+
+sql_module.set_db()
+egs_module.game_data_update()
 
 if os.name != 'nt':
     app_path_divider = '/'
@@ -30,6 +33,11 @@ def set_env(env):
     else:
         return app_var_files[env]
 
+emoji_bookmark = u'\U0001F516'
+emoji_gamepad = u'\U0001F3AE'
+emoji_scroll = u'\U0001F4DC'
+emoji_hourglass = u'\U0000231B'
+
 app_var_files = read_env_from_file()
 api_id = set_env('TG_API_ID')
 api_hash = set_env('TG_API_HASH')
@@ -45,20 +53,18 @@ async def handle_start_command(event):
 @client.on(events.NewMessage(pattern='^/start_subscription@epic_announcement_bot$'))
 async def handle_start_command(event):
     chat_id = event.message.peer_id
-    if isinstance(chat_id, (PeerChat, PeerChannel)):
-        await client.send_message(chat_id, 'Hello team, my name is Epic Bot and I\'m going to share an information about EGS free games with you here!')
-        print(f' chat to be added: {chat_id}')
-    elif isinstance(chat_id, (PeerUser)):
+    if isinstance(chat_id, (PeerUser, PeerChat, PeerChannel)):
         await client.send_message(chat_id, 'Now I will start sharing EGS free games data with you!')
+        chat_id_int = await client.get_entity(chat_id)
+        print(f' chat to be removed: {chat_id_int}')
 
 @client.on(events.NewMessage(pattern='^/stop_subscription@epic_announcement_bot$'))
 async def handle_start_command(event):
     chat_id = event.message.peer_id
-    if isinstance(chat_id, (PeerChat, PeerChannel)):
-        await client.send_message(chat_id, 'Got it, no more information about free games needed. See ya, team!')
-        print(f' chat to be removed: {chat_id}')
-    elif isinstance(chat_id, (PeerUser)):
-        await client.send_message(chat_id, 'Got it, no more information about free games needed. See ya, friend!')
+    if isinstance(chat_id, (PeerUser, PeerChat, PeerChannel)):
+        await client.send_message(chat_id, 'Got it, no more information about free games needed. See ya!')
+        chat_id_int = await client.get_entity(chat_id)
+        print(f' chat to be removed: {chat_id_int}')
 
 @client.on(events.NewMessage(pattern='^/egs_status@epic_announcement_bot$'))
 async def handle_start_command(event):
@@ -71,8 +77,17 @@ async def handle_start_command(event):
     chat_id = event.message.peer_id
     if isinstance(chat_id, (PeerUser, PeerChat, PeerChannel)):
         try:
-            message_text, urls = egs_module.get_current_games_data()
-            await client.send_file(chat_id, urls, caption=message_text)
+            game_data_list, image_list = sql_module.get_current_game_data()
+            message_text = '\nupcoming free titles:\n\n'
+            for game_data in game_data_list:
+                message_text += f'{emoji_gamepad} {game_data['Title']} {emoji_gamepad}\n'
+                message_text += 'tags:\n'
+                for game_tag in game_data['Tag']:
+                    message_text += f'  {emoji_bookmark} {game_tag}\n'
+                message_text += f' {emoji_scroll} {game_data['Description']}\n'
+                message_text += f' {emoji_hourglass} offer valid until:\n'
+                message_text += f'  {game_data['EndDate']}\n'
+            await client.send_file(chat_id, image_list, caption=message_text)
         except Exception as exception:
             print(exception)
             await client.send_message(chat_id, 'Something went wrong, please check store status with /egs_status@epic_announcement_bot command')
@@ -82,11 +97,29 @@ async def handle_start_command(event):
     chat_id = event.message.peer_id
     if isinstance(chat_id, (PeerUser, PeerChat, PeerChannel)):
         try:
-            message_text, urls = egs_module.get_upcoming_games_data()
-            await client.send_file(chat_id, urls, caption=message_text)
+            game_data_list, image_list = sql_module.get_upcoming_game_data()
+            message_text = '\nupcoming free titles:\n\n'
+            for game_data in game_data_list:
+                message_text += f'{emoji_gamepad} {game_data['Title']} {emoji_gamepad}\n'
+                message_text += 'tags:\n'
+                for game_tag in game_data['Tag']:
+                    message_text += f'  {emoji_bookmark} {game_tag}\n'
+                message_text += f' {emoji_scroll} {game_data['Description']}\n'
+                message_text += f'{emoji_hourglass} offer valid since:\n'
+                message_text += f'  {game_data['StartDate']}\n'
+                message_text += f'{emoji_hourglass} offer valid until:\n'
+                message_text += f'  {game_data['EndDate']}\n'
+            await client.send_file(chat_id, image_list, caption=message_text)
         except Exception as exception:
             print(exception)
             await client.send_message(chat_id, 'Something went wrong, please check store status with /egs_status@epic_announcement_bot command')
 
 with client:
     client.run_until_disconnected()
+
+'''
+async def send_hello_message():    
+    await client.send_message(266221374, 'hello there!')
+
+client.loop.run_until_complete(send_hello_message())
+'''
