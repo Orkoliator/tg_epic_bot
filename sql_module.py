@@ -43,11 +43,11 @@ def check_games_data(title):
         existing_game_list.append(existing_title[0])
     if title not in existing_game_list:
         sqliteConnection.close()
-        print('games were changed')
+        print('[INFO] games were changed')
         return True
     else:
         sqliteConnection.close()
-        print('games were not changed')
+        print('[INFO] games were not changed')
         return False
 
 def clean_games_data():
@@ -132,7 +132,7 @@ def get_upcoming_game_data():
     return game_data_list, image_list
 
 def print_data():
-    print('current games:')
+    print('[DEBUG] current games:')
     sqliteConnection = sqlite3.connect(db_file)
     cursor = sqliteConnection.cursor()
     check_sql_query = f'SELECT Title FROM Current_Games'
@@ -140,7 +140,7 @@ def print_data():
     sqliteConnection.commit()
     for title in cursor:
         print(f'  {title[0]}')
-    print('upcoming games:')
+    print('[DEBUG] upcoming games:')
     sqliteConnection = sqlite3.connect(db_file)
     cursor = sqliteConnection.cursor()
     check_sql_query = f'SELECT Title FROM Upcoming_Games'

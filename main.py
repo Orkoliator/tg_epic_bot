@@ -2,10 +2,10 @@ from telethon import TelegramClient, events
 from telethon.tl.types import PeerUser, PeerChat, PeerChannel, DocumentAttributeVideo
 import os
 import yaml
+import asyncio
 import egs_module, sql_module
 
 sql_module.set_db()
-egs_module.game_data_update()
 
 if os.name != 'nt':
     app_path_divider = '/'
@@ -42,7 +42,7 @@ app_var_files = read_env_from_file()
 api_id = set_env('TG_API_ID')
 api_hash = set_env('TG_API_HASH')
 bot_token = set_env('TG_BOT_TOKEN')
-client = TelegramClient('bot_session', api_id, api_hash).start(bot_token=bot_token)
+client = TelegramClient('handle_session', api_id, api_hash).start(bot_token=bot_token)
 
 @client.on(events.NewMessage(pattern='^/start$'))
 async def handle_start_command(event):
@@ -56,7 +56,7 @@ async def handle_start_command(event):
     if isinstance(chat_id, (PeerUser, PeerChat, PeerChannel)):
         await client.send_message(chat_id, 'Now I will start sharing EGS free games data with you!')
         chat_id_int = await client.get_entity(chat_id)
-        print(f' chat to be removed: {chat_id_int}')
+        print(f'[INFO] chat to be removed: {chat_id_int}')
 
 @client.on(events.NewMessage(pattern='^/stop_subscription@epic_announcement_bot$'))
 async def handle_start_command(event):
@@ -64,7 +64,7 @@ async def handle_start_command(event):
     if isinstance(chat_id, (PeerUser, PeerChat, PeerChannel)):
         await client.send_message(chat_id, 'Got it, no more information about free games needed. See ya!')
         chat_id_int = await client.get_entity(chat_id)
-        print(f' chat to be removed: {chat_id_int}')
+        print(f'[INFO] chat to be removed: {chat_id_int}')
 
 @client.on(events.NewMessage(pattern='^/egs_status@epic_announcement_bot$'))
 async def handle_start_command(event):
@@ -89,7 +89,7 @@ async def handle_start_command(event):
                 message_text += f'  {game_data['EndDate']}\n'
             await client.send_file(chat_id, image_list, caption=message_text)
         except Exception as exception:
-            print(exception)
+            print(f'[ERROR] {exception}')
             await client.send_message(chat_id, 'Something went wrong, please check store status with /egs_status@epic_announcement_bot command')
 
 @client.on(events.NewMessage(pattern='^/upcoming_games@epic_announcement_bot$'))
@@ -111,11 +111,23 @@ async def handle_start_command(event):
                 message_text += f'  {game_data['EndDate']}\n'
             await client.send_file(chat_id, image_list, caption=message_text)
         except Exception as exception:
-            print(exception)
+            print(f'[ERROR] {exception}')
             await client.send_message(chat_id, 'Something went wrong, please check store status with /egs_status@epic_announcement_bot command')
 
-with client:
-    client.run_until_disconnected()
+async def scheduled_egs_check():
+    while True:
+        print('[INFO] data is being updated')
+        egs_module.game_data_update()
+        print('[INFO] data was updated')
+        await asyncio.sleep(86400)
+
+try:
+    loop = asyncio.get_event_loop()
+    client.start()
+    loop.create_task(scheduled_egs_check())
+    loop.run_forever()
+except KeyboardInterrupt:
+    print('[ERROR] exited manually')
 
 '''
 async def send_hello_message():    
