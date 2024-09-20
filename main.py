@@ -46,7 +46,7 @@ def generate_message_current():
                 message_text += f"  {emoji_bookmark} {game_tag}\n"
             message_text += f" {emoji_scroll} {game_data['Description']}\n"
             message_text += f" {emoji_hourglass} offer valid until:\n"
-            message_text += f"  {game_data['EndDate']}\n"
+            message_text += f"  {game_data['EndDate']}\n\n"
         return image_list, message_text
     except Exception as exception:
         print(f"[ERROR] {exception}")
@@ -164,7 +164,7 @@ async def notify_subscribers():
 async def scheduled_egs_check():
     while True:
         print('[INFO] data is being updated')
-        egs_module.game_data_update()
+        await asyncio.to_thread(egs_module.game_data_update)
         print('[INFO] data was updated')
         await notify_subscribers()
         print('[INFO] subscribers were notified')

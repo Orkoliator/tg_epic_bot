@@ -33,7 +33,7 @@ def game_data_update():
             if game['promotions']['promotionalOffers']:
                 current_random_title = game['title']
                 break
-    if sql_module.check_games_data(current_random_title):
+    if not sql_module.check_games_data(current_random_title):
         sql_module.clean_games_data()
         image_counter = 1
         for game in free_games:
@@ -51,7 +51,7 @@ def game_data_update():
                         for game_image in game['keyImages']:
                             if game_image['type'] == 'OfferImageTall':
                                 image = requests.get(game_image['url']).content
-                                image_path = f'{image_dir_path}{image_counter}.jpg'
+                                image_path = f"{image_dir_path}{image_counter}.jpg"
                                 with open(image_path, 'wb') as handler:
                                     handler.write(image)
                                 image_counter += 1
