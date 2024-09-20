@@ -88,7 +88,7 @@ client = TelegramClient('handle_session', api_id, api_hash).start(bot_token=bot_
 async def handle_start_command(event):
     chat_id = event.message.peer_id
     if isinstance(chat_id, (PeerUser)):
-        await client.send_message(chat_id, 'Hello friend, my name is Epic Bot. I monitor EGS free games info and share it. Please use /help@epic_announcement_bot command to see what I can do!')
+        await client.send_message(chat_id, 'Hello friend, my name is Epic Bot. I monitor EGS free games info and share it. Please use /help command to see what I can do!')
 
 @client.on(events.NewMessage(pattern='^/help$'))
 async def handle_start_command(event):
