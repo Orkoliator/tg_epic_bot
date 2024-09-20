@@ -90,7 +90,7 @@ def check_games_data(title):
 def clean_games_data():
     sqliteConnection = sqlite3.connect(db_file)
     cursor = sqliteConnection.cursor()
-    check_sql_query_list = ['DELETE FROM Current_Games', 'DELETE FROM Upcoming_Games']
+    check_sql_query_list = ['DELETE FROM Current_Games', 'DELETE FROM Upcoming_Games', 'DELETE FROM Games_Tags']
     for check_sql_query in check_sql_query_list:
         cursor.execute(check_sql_query)
         sqliteConnection.commit()
