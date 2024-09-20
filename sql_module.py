@@ -29,7 +29,7 @@ def set_db():
 def add_subscriber(chat_id_int):
     sqliteConnection = sqlite3.connect(db_file)
     cursor = sqliteConnection.cursor()
-    sql_query = f'INSERT INTO Subscribers (ChatID) VALUES ({chat_id_int})'
+    sql_query = f"INSERT INTO Subscribers (ChatID) VALUES ({chat_id_int})"
     cursor.execute(sql_query)
     sqliteConnection.commit()
     sqliteConnection.close()
@@ -37,7 +37,7 @@ def add_subscriber(chat_id_int):
 def delete_subscriber(chat_id_int):
     sqliteConnection = sqlite3.connect(db_file)
     cursor = sqliteConnection.cursor()
-    sql_query = f'DELETE FROM Subscribers WHERE ChatID = {chat_id_int}'
+    sql_query = f"DELETE FROM Subscribers WHERE ChatID = {chat_id_int}"
     cursor.execute(sql_query)
     sqliteConnection.commit()
     sqliteConnection.close()
@@ -45,15 +45,15 @@ def delete_subscriber(chat_id_int):
 def check_subscriber(chat_id_int):
     sqliteConnection = sqlite3.connect(db_file)
     cursor = sqliteConnection.cursor()
-    sql_query = f'SELECT ChatID FROM Subscribers WHERE ChatID = {chat_id_int}'
+    sql_query = f"SELECT ChatID FROM Subscribers WHERE ChatID = {chat_id_int}"
     cursor.execute(sql_query)
     if cursor.fetchone():
-        print(f'[DEBUG] chat {chat_id_int} is a subscriber')
+        print(f"[DEBUG] chat {chat_id_int} is a subscriber")
         sqliteConnection.commit()
         sqliteConnection.close()
         return True
     else:
-        print(f'[DEBUG] chat {chat_id_int} is not a subscriber')
+        print(f"[DEBUG] chat {chat_id_int} is not a subscriber")
         sqliteConnection.commit()
         sqliteConnection.close()
         return False
@@ -61,7 +61,7 @@ def check_subscriber(chat_id_int):
 def get_all_subscribers():
     sqliteConnection = sqlite3.connect(db_file)
     cursor = sqliteConnection.cursor()
-    check_sql_query = f'SELECT ChatID FROM Subscribers'
+    check_sql_query = 'SELECT ChatID FROM Subscribers'
     cursor.execute(check_sql_query)
     sqliteConnection.commit()
     subscribers_list = []
@@ -72,7 +72,7 @@ def get_all_subscribers():
 def check_games_data(title):
     sqliteConnection = sqlite3.connect(db_file)
     cursor = sqliteConnection.cursor()
-    check_sql_query = f'SELECT Title FROM Current_Games'
+    check_sql_query = 'SELECT Title FROM Current_Games'
     cursor.execute(check_sql_query)
     sqliteConnection.commit()
     existing_game_list = []
@@ -99,7 +99,7 @@ def clean_games_data():
 def update_current_game_data(title,description,image_path,end_offer_date):
     sqliteConnection = sqlite3.connect(db_file)
     cursor = sqliteConnection.cursor()
-    sql_query = f'INSERT INTO Current_Games (Title,Description,EndDate,ImagePath) VALUES (?, ?, ?, ?)'
+    sql_query = 'INSERT INTO Current_Games (Title,Description,EndDate,ImagePath) VALUES (?, ?, ?, ?)'
     data_tuple = (title, description, end_offer_date, image_path)
     cursor.execute(sql_query, data_tuple)
     sqliteConnection.commit()
@@ -108,7 +108,7 @@ def update_current_game_data(title,description,image_path,end_offer_date):
 def update_upcoming_game_data(title,description,image_path,start_offer_date,end_offer_date):
     sqliteConnection = sqlite3.connect(db_file)
     cursor = sqliteConnection.cursor()
-    sql_query = f'INSERT INTO Upcoming_Games (Title,Description,StartDate,EndDate,ImagePath) VALUES (?, ?, ?, ?, ?)'
+    sql_query = 'INSERT INTO Upcoming_Games (Title,Description,StartDate,EndDate,ImagePath) VALUES (?, ?, ?, ?, ?)'
     data_tuple = (title, description, start_offer_date, end_offer_date, image_path)
     cursor.execute(sql_query, data_tuple)
     sqliteConnection.commit()
@@ -118,7 +118,7 @@ def update_game_tags(title,tag_list):
     sqliteConnection = sqlite3.connect(db_file)
     cursor = sqliteConnection.cursor()
     for tag in tag_list:
-        sql_query = f'INSERT INTO Games_Tags (Title,Tag) VALUES (?, ?)'
+        sql_query = 'INSERT INTO Games_Tags (Title,Tag) VALUES (?, ?)'
         data_tuple = (title, tag)
         cursor.execute(sql_query, data_tuple)
         sqliteConnection.commit()
@@ -127,7 +127,7 @@ def update_game_tags(title,tag_list):
 def get_current_game_data():
     sqliteConnection = sqlite3.connect(db_file)
     game_cursor = sqliteConnection.cursor()
-    game_sql_query = f'SELECT Title, Description, ImagePath, EndDate FROM Current_Games'
+    game_sql_query = 'SELECT Title, Description, ImagePath, EndDate FROM Current_Games'
     game_cursor.execute(game_sql_query)
     sqliteConnection.commit()
     image_list = []
@@ -136,7 +136,7 @@ def get_current_game_data():
         image_list.append(game[2])
         tag_list = []
         tag_cursor = sqliteConnection.cursor()
-        tag_sql_query = f'SELECT Tag FROM Games_Tags WHERE Title = \'{game[0]}\''
+        tag_sql_query = f"SELECT Tag FROM Games_Tags WHERE Title = \'{game[0]}\'"
         tag_cursor.execute(tag_sql_query)
         for tag in tag_cursor:
             tag_list.append(tag[0])
@@ -149,7 +149,7 @@ def get_current_game_data():
 def get_upcoming_game_data():
     sqliteConnection = sqlite3.connect(db_file)
     game_cursor = sqliteConnection.cursor()
-    game_sql_query = f'SELECT Title, Description, ImagePath, StartDate, EndDate FROM Upcoming_Games'
+    game_sql_query = 'SELECT Title, Description, ImagePath, StartDate, EndDate FROM Upcoming_Games'
     game_cursor.execute(game_sql_query)
     sqliteConnection.commit()
     image_list = []
@@ -158,7 +158,7 @@ def get_upcoming_game_data():
         image_list.append(game[2])
         tag_list = []
         tag_cursor = sqliteConnection.cursor()
-        tag_sql_query = f'SELECT Tag FROM Games_Tags WHERE Title = \'{game[0]}\''
+        tag_sql_query = f"SELECT Tag FROM Games_Tags WHERE Title = \'{game[0]}\'"
         tag_cursor.execute(tag_sql_query)
         for tag in tag_cursor:
             tag_list.append(tag[0])
@@ -172,7 +172,7 @@ def print_data():
     print('[DEBUG] current games:')
     sqliteConnection = sqlite3.connect(db_file)
     cursor = sqliteConnection.cursor()
-    check_sql_query = f'SELECT Title FROM Current_Games'
+    check_sql_query = 'SELECT Title FROM Current_Games'
     cursor.execute(check_sql_query)
     sqliteConnection.commit()
     for title in cursor:
@@ -180,7 +180,7 @@ def print_data():
     print('[DEBUG] upcoming games:')
     sqliteConnection = sqlite3.connect(db_file)
     cursor = sqliteConnection.cursor()
-    check_sql_query = f'SELECT Title FROM Upcoming_Games'
+    check_sql_query = 'SELECT Title FROM Upcoming_Games'
     cursor.execute(check_sql_query)
     sqliteConnection.commit()
     for title in cursor:
