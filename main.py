@@ -8,10 +8,10 @@ import egs_module, sql_module
 sql_module.set_db()
 
 if os.name != 'nt':
-    print('[INFO] non-Windows paths detected')
+    print("[INFO] non-Windows paths detected")
     app_path_divider = '/'
 else:
-    print('[INFO] Windows paths detected')
+    print("[INFO] Windows paths detected")
     app_path_divider = '\\'
 
 for directory in ['pic_current', 'pic_upcoming']:
@@ -25,12 +25,12 @@ def read_env_from_file():
             env_data = yaml.safe_load(env_file)
             return env_data
     except Exception as exception:
-        print(f'ERROR\ncannot find variables\nerror message: {exception}')
+        print(f"[ERROR]\ncannot find variables\nerror message: {exception}")
         return None
 
 def set_env(env):
     if os.getenv(env):
-        print (f'found {env} in system environment')
+        print (f"[INFO] found {env} in system environment")
         return os.environ[env]
     else:
         return app_var_files[env]
@@ -38,38 +38,38 @@ def set_env(env):
 def generate_message_current():
     try:
         game_data_list, image_list = sql_module.get_current_game_data()
-        message_text = '\ncurrent free titles:\n\n'
+        message_text = "\ncurrent free titles:\n\n"
         for game_data in game_data_list:
-            message_text += f'{emoji_gamepad} {game_data['Title']} {emoji_gamepad}\n'
+            message_text += f"{emoji_gamepad} {game_data['Title']} {emoji_gamepad}\n"
             message_text += 'tags:\n'
             for game_tag in game_data['Tag']:
-                message_text += f'  {emoji_bookmark} {game_tag}\n'
-            message_text += f' {emoji_scroll} {game_data['Description']}\n'
-            message_text += f' {emoji_hourglass} offer valid until:\n'
-            message_text += f'  {game_data['EndDate']}\n'
+                message_text += f"  {emoji_bookmark} {game_tag}\n"
+            message_text += f" {emoji_scroll} {game_data['Description']}\n"
+            message_text += f" {emoji_hourglass} offer valid until:\n"
+            message_text += f"  {game_data['EndDate']}\n"
         return image_list, message_text
     except Exception as exception:
-        print(f'[ERROR] {exception}')
+        print(f"[ERROR] {exception}")
         message_text = 'Something went wrong, please check store status with /egs_status@epic_announcement_bot command'
         return None, message_text
 
 def generate_message_upcoming():
     try:
         game_data_list, image_list = sql_module.get_upcoming_game_data()
-        message_text = '\nupcoming free titles:\n\n'
+        message_text = "\nupcoming free titles:\n\n"
         for game_data in game_data_list:
-            message_text += f'{emoji_gamepad} {game_data['Title']} {emoji_gamepad}\n'
-            message_text += 'tags:\n'
+            message_text += f"{emoji_gamepad} {game_data['Title']} {emoji_gamepad}\n"
+            message_text += "tags:\n"
             for game_tag in game_data['Tag']:
-                message_text += f'  {emoji_bookmark} {game_tag}\n'
-            message_text += f' {emoji_scroll} {game_data['Description']}\n'
-            message_text += f'{emoji_hourglass} offer valid since:\n'
-            message_text += f'  {game_data['StartDate']}\n'
-            message_text += f'{emoji_hourglass} offer valid until:\n'
-            message_text += f'  {game_data['EndDate']}\n'
+                message_text += f"  {emoji_bookmark} {game_tag}\n"
+            message_text += f" {emoji_scroll} {game_data['Description']}\n"
+            message_text += f"{emoji_hourglass} offer valid since:\n"
+            message_text += f"  {game_data['StartDate']}\n"
+            message_text += f"{emoji_hourglass} offer valid until:\n"
+            message_text += f"  {game_data['EndDate']}\n"
         return image_list, message_text
     except Exception as exception:
-        print(f'[ERROR] {exception}')
+        print(f"[ERROR] {exception}")
         message_text = 'Something went wrong, please check store status with /egs_status@epic_announcement_bot command'
         return None, message_text
 
@@ -98,7 +98,7 @@ async def handle_start_command(event):
         chat_id_int = chat_id.id
         if not sql_module.check_subscriber(chat_id_int):
             sql_module.add_subscriber(chat_id_int)
-            print(f'[INFO] unsubscribed chat: {chat_id_int}')
+            print(f"[INFO] subscribed chat: {chat_id_int}")
             await client.send_message(chat_id, 'Now I will start sharing EGS free games data with you!')
         else:
             await client.send_message(chat_id, 'Already subscribed!')
@@ -111,7 +111,7 @@ async def handle_start_command(event):
         chat_id_int = chat_id.id
         if sql_module.check_subscriber(chat_id_int):
             sql_module.delete_subscriber(chat_id_int)
-            print(f'[INFO] unsubscribed chat: {chat_id_int}')
+            print(f"[INFO] unsubscribed chat: {chat_id_int}")
             await client.send_message(chat_id, 'Got it, no more information about free games needed. See ya!')
         else:
             await client.send_message(chat_id, 'Not subscribed yet!')
@@ -120,7 +120,7 @@ async def handle_start_command(event):
 async def handle_start_command(event):
     chat_id = event.message.peer_id
     status = egs_module.check_egs()
-    await client.send_message(chat_id, f'EGS status: {status}')
+    await client.send_message(chat_id, f"EGS status: {status}")
 
 @client.on(events.NewMessage(pattern='^/current_games@epic_announcement_bot$'))
 async def handle_start_command(event):
