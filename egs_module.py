@@ -18,7 +18,7 @@ api = EpicGamesStoreAPI()
 
 def date_format(date):
     date = datetime.fromisoformat(date[:-1]).astimezone(timezone.utc)
-    date = f'{date.strftime('%Y-%m-%d %H:%M:%S')} UTC'
+    date = f"{date.strftime('%Y-%m-%d %H:%M:%S')} UTC"
     return date
 
 def check_egs():
