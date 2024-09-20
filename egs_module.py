@@ -33,7 +33,7 @@ def game_data_update():
             if game['promotions']['promotionalOffers']:
                 current_random_title = game['title']
                 break
-    if not sql_module.check_games_data(current_random_title):
+    if sql_module.check_games_data(current_random_title):
         sql_module.clean_games_data()
         image_counter = 1
         for game in free_games:

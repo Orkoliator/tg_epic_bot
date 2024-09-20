@@ -139,7 +139,7 @@ async def handle_start_command(event):
     chat_id = event.message.peer_id
     if isinstance(chat_id, (PeerUser, PeerChat, PeerChannel)):
         image_list, message_text = generate_message_current()
-        if image_list != None:
+        if image_list != []:
             await client.send_file(chat_id, image_list, caption=message_text)
         else:
             await client.send_message(chat_id, 'Something went wrong, please check store status with /egs_status@epic_announcement_bot command')
@@ -149,14 +149,14 @@ async def handle_start_command(event):
     chat_id = event.message.peer_id
     if isinstance(chat_id, (PeerUser, PeerChat, PeerChannel)):
         image_list, message_text = generate_message_upcoming()
-        if image_list != None:
+        if image_list != []:
             await client.send_file(chat_id, image_list, caption=message_text)
         else:
             await client.send_message(chat_id, 'Something went wrong, please check store status with /egs_status@epic_announcement_bot command')
 
 async def notify_subscribers():
     image_list, message_text = generate_message_current()
-    if image_list != None:
+    if image_list != []:
         subscribers_list = sql_module.get_all_subscribers()
         for subscriber in subscribers_list:
             await client.send_file(subscriber, image_list, caption=message_text)
