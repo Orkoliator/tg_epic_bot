@@ -66,7 +66,7 @@ def generate_message_upcoming():
             message_text += f"{emoji_hourglass} offer valid since:\n"
             message_text += f"  {game_data['StartDate']}\n"
             message_text += f"{emoji_hourglass} offer valid until:\n"
-            message_text += f"  {game_data['EndDate']}\n"
+            message_text += f"  {game_data['EndDate']}\n\n"
         return image_list, message_text
     except Exception as exception:
         print(f"[ERROR] {exception}")
@@ -88,7 +88,19 @@ client = TelegramClient('handle_session', api_id, api_hash).start(bot_token=bot_
 async def handle_start_command(event):
     chat_id = event.message.peer_id
     if isinstance(chat_id, (PeerUser)):
-        await client.send_message(chat_id, 'Hello friend, my name is Epic Bot. I monitor EGS free games info and share it. Please use /start_subscription@epic_announcement_bot command and I will start sharing this information in this chat, or add me to chat and start me with same command!')
+        await client.send_message(chat_id, 'Hello friend, my name is Epic Bot. I monitor EGS free games info and share it. Please use /help@epic_announcement_bot command to see what I can do!')
+
+@client.on(events.NewMessage(pattern='^/help$'))
+async def handle_start_command(event):
+    chat_id = event.message.peer_id
+    if isinstance(chat_id, (PeerUser, PeerChat, PeerChannel)):
+        await client.send_message(chat_id, '''Here is what I can do:
+/subscribe@epic_announcement_bot - start news subscription
+/unsubscribe@epic_announcement_bot - cansel news subscription
+/egs_status@epic_announcement_bot - check EGS services status
+/current_games@epic_announcement_bot - show current free games in EGS
+/upcoming_games@epic_announcement_bot - show upcoming free games in EGS
+\nAfter subscribing you will recieve free game offer updates on day it will be made in EGS.''')
 
 @client.on(events.NewMessage(pattern='^/subscribe@epic_announcement_bot$'))
 async def handle_start_command(event):
