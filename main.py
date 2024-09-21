@@ -88,7 +88,7 @@ client = TelegramClient('handle_session', api_id, api_hash).start(bot_token=bot_
 async def handle_start_command(event):
     chat_id = event.message.peer_id
     if isinstance(chat_id, (PeerUser)):
-        await client.send_message(chat_id, 'Hello friend, my name is Epic Bot. I monitor EGS free games info and share it. Please use /help@epic_announcement_bot command to see what I can do!')
+        await client.send_message(chat_id, 'Hello friend, my name is Epic Bot. I monitor EGS free games info and share it. Please use /help command to see what I can do!')
 
 @client.on(events.NewMessage(pattern='^/help$'))
 async def handle_start_command(event):
@@ -163,11 +163,12 @@ async def notify_subscribers():
 
 async def scheduled_egs_check():
     while True:
-        print('[INFO] data is being updated')
-        await asyncio.to_thread(egs_module.game_data_update)
-        print('[INFO] data was updated')
-        await notify_subscribers()
-        print('[INFO] subscribers were notified')
+        if await asyncio.to_thread(egs_module.check_games_data):
+            print('[INFO] data is being updated')
+            await asyncio.to_thread(egs_module.game_data_update)
+            print('[INFO] data was updated')
+            await notify_subscribers()
+            print('[INFO] subscribers were notified')
         await asyncio.sleep(86400)
 
 try:
