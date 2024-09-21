@@ -163,11 +163,12 @@ async def notify_subscribers():
 
 async def scheduled_egs_check():
     while True:
-        print('[INFO] data is being updated')
-        await asyncio.to_thread(egs_module.game_data_update)
-        print('[INFO] data was updated')
-        await notify_subscribers()
-        print('[INFO] subscribers were notified')
+        if await asyncio.to_thread(egs_module.check_games_data):
+            print('[INFO] data is being updated')
+            await asyncio.to_thread(egs_module.game_data_update)
+            print('[INFO] data was updated')
+            await notify_subscribers()
+            print('[INFO] subscribers were notified')
         await asyncio.sleep(86400)
 
 try:
