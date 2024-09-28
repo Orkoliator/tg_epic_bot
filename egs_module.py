@@ -1,12 +1,7 @@
-from epicstore_api import EpicGamesStoreAPI, OfferData
+from epicstore_api import EpicGamesStoreAPI
 from datetime import datetime, timezone
 import requests, os
-import sql_module
-
-emoji_bookmark = u'\U0001F516'
-emoji_gamepad = u'\U0001F3AE'
-emoji_scroll = u'\U0001F4DC'
-emoji_hourglass = u'\U0000231B'
+import sql_module, tg_module
 
 if os.name != 'nt':
     app_path_divider = '/'
