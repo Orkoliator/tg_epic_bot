@@ -49,7 +49,7 @@ def generate_message_upcoming():
 api_id, api_hash, bot_token = preconfig.preconfigure()
 client = TelegramClient('handle_session', api_id, api_hash).start(bot_token=bot_token)
 
-def tg_handler(client):
+def tg_handler():
     client.start()
 
 @client.on(events.NewMessage(pattern='^/start$'))

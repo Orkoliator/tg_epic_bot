@@ -1,22 +1,22 @@
+from async_cron.job import CronJob
+from async_cron.schedule import Scheduler
 import asyncio
 import egs_module, tg_module
 
-async def scheduled_egs_check():
-    while True:
-        if await asyncio.to_thread(egs_module.check_games_data):
-            print('[INFO] data is being updated')
-            await asyncio.to_thread(egs_module.game_data_update)
-            print('[INFO] data was updated')
-            await tg_module.notify_subscribers()
-            print('[INFO] subscribers were notified')
-        await asyncio.sleep(86400)
+async def egs_update():
+    if egs_module.check_games_data():
+        egs_module.game_data_update()
+        await tg_module.notify_subscribers()
+
+scheduler = Scheduler(locale="pl-PL")
+egs_update_task = CronJob(name='egs_update').every().day.at("17:05").go(egs_update)
 
 def main():
     loop = asyncio.get_event_loop()
-    loop.create_task(scheduled_egs_check())
+    scheduler.add_job(egs_update_task)
     tg_module.tg_handler()
     try:
-        loop.run_forever()
+        loop.run_until_complete(scheduler.start())
     except KeyboardInterrupt:
         print('[ERROR] exited manually')
 
