@@ -6,6 +6,7 @@ emoji_bookmark = u'\U0001F516'
 emoji_gamepad = u'\U0001F3AE'
 emoji_scroll = u'\U0001F4DC'
 emoji_hourglass = u'\U0000231B'
+emoji_link = u'\U0001F517'
 
 def generate_message_current():
     try:
@@ -18,7 +19,8 @@ def generate_message_current():
                 message_text += f"  {emoji_bookmark} {game_tag}\n"
             message_text += f" {emoji_scroll} {game_data['Description']}\n"
             message_text += f" {emoji_hourglass} offer valid until:\n"
-            message_text += f"  {game_data['EndDate']}\n\n"
+            message_text += f"  {game_data['EndDate']}\n"
+            message_text += f" {emoji_link} https://store.epicgames.com/en-US/p/{game_data['Page']}\n\n"
         return image_list, message_text
     except Exception as exception:
         print(f"[ERROR] {exception}")
@@ -38,7 +40,8 @@ def generate_message_upcoming():
             message_text += f"{emoji_hourglass} offer valid since:\n"
             message_text += f"  {game_data['StartDate']}\n"
             message_text += f"{emoji_hourglass} offer valid until:\n"
-            message_text += f"  {game_data['EndDate']}\n\n"
+            message_text += f"  {game_data['EndDate']}\n"
+            message_text += f" {emoji_link} https://store.epicgames.com/en-US/p/{game_data['Page']}\n\n"
         return image_list, message_text
     except Exception as exception:
         print(f"[ERROR] {exception}")
@@ -108,7 +111,8 @@ async def handle_start_command(event):
     if isinstance(chat_id, (PeerUser, PeerChat, PeerChannel)):
         image_list, message_text = generate_message_current()
         if image_list != []:
-            await client.send_file(chat_id, image_list, caption=message_text)
+            await client.send_file(chat_id, image_list)
+            await client.send_message(chat_id, message_text, link_preview=False)
         else:
             await client.send_message(chat_id, 'Something went wrong, please check store status with /egs_status@epic_announcement_bot command')
 
@@ -118,7 +122,8 @@ async def handle_start_command(event):
     if isinstance(chat_id, (PeerUser, PeerChat, PeerChannel)):
         image_list, message_text = generate_message_upcoming()
         if image_list != []:
-            await client.send_file(chat_id, image_list, caption=message_text)
+            await client.send_file(chat_id, image_list)
+            await client.send_message(chat_id, message_text, link_preview=False)
         else:
             await client.send_message(chat_id, 'Something went wrong, please check store status with /egs_status@epic_announcement_bot command')
 
@@ -128,3 +133,41 @@ async def notify_subscribers():
         subscribers_list = sql_module.get_all_subscribers()
         for subscriber in subscribers_list:
             await client.send_file(subscriber, image_list, caption=message_text)
+
+# admin handlers
+
+def generate_message_admin(admins_list, subscribers_list):
+    message_text = f"subscribers number: {len(subscribers_list)}"
+    if len(subscribers_list) > 0:
+        message_text = message_text + '\nsubscribers list:'
+        for subscriber in subscribers_list:
+            message_text = message_text + f"\n  {subscriber}"
+    message_text = message_text + f"\n\nadmins number: {len(admins_list)}"
+    if len(admins_list) > 0:
+        message_text = message_text + '\nadmins list:'
+        for admin in admins_list:
+            message_text = message_text + f"\n  {admin}"
+    return message_text
+
+@client.on(events.NewMessage(pattern='^/admin_get_data@epic_announcement_bot$'))
+async def handle_start_command(event):
+    chat_id = event.message.peer_id
+    if isinstance(chat_id, (PeerUser)):
+        admins_list = sql_module.get_all_admins()        
+        chat_id = await client.get_entity(chat_id)
+        chat_id_int = chat_id.id
+        if chat_id_int in admins_list:
+            subscribers_list = sql_module.get_all_subscribers()
+            message_text = generate_message_admin(admins_list, subscribers_list)
+            await client.send_message(chat_id, message_text)
+
+@client.on(events.NewMessage(pattern='^/admin_force_refresh@epic_announcement_bot$'))
+async def handle_start_command(event):
+    chat_id = event.message.peer_id
+    if isinstance(chat_id, (PeerUser)):
+        admins_list = sql_module.get_all_admins()    
+        chat_id = await client.get_entity(chat_id)
+        chat_id_int = chat_id.id
+        if chat_id_int in admins_list:
+            egs_module.game_data_update()
+            await client.send_message(chat_id, 'database was updated')
