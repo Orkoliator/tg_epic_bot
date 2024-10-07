@@ -58,7 +58,10 @@ def game_data_update():
                             image_counter += 1
                     end_offer_date = game['promotions']['promotionalOffers'][0]['promotionalOffers'][0]['endDate']
                     end_offer_date = date_format(end_offer_date)
-                    sql_module.update_current_game_data(title,description,image_path,end_offer_date)
+                    for page in game['catalogNs']['mappings']:
+                        if page['pageType'] == 'productHome':
+                            page_path = page['pageSlug']
+                    sql_module.update_current_game_data(title,description,image_path,end_offer_date,page_path)
                     sql_module.update_game_tags(title,tag_list)
             if game['promotions']['upcomingPromotionalOffers']:
                 if game['promotions']['upcomingPromotionalOffers'][0]['promotionalOffers'][0]['discountSetting']['discountPercentage'] == 0:
@@ -81,5 +84,8 @@ def game_data_update():
                     start_offer_date = date_format(start_offer_date)
                     end_offer_date = game['promotions']['upcomingPromotionalOffers'][0]['promotionalOffers'][0]['endDate']
                     end_offer_date = date_format(end_offer_date)
-                    sql_module.update_upcoming_game_data(title,description,image_path,start_offer_date,end_offer_date)
+                    for page in game['catalogNs']['mappings']:
+                        if page['pageType'] == 'productHome':
+                            page_path = page['pageSlug']
+                    sql_module.update_upcoming_game_data(title,description,image_path,start_offer_date,end_offer_date,page_path)
                     sql_module.update_game_tags(title,tag_list)
