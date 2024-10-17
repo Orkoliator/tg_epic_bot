@@ -132,7 +132,8 @@ async def notify_subscribers():
     if image_list != []:
         subscribers_list = sql_module.get_all_subscribers()
         for subscriber in subscribers_list:
-            await client.send_file(subscriber, image_list, caption=message_text)
+            await client.send_file(subscriber, image_list)
+            await client.send_message(subscriber, message_text, link_preview=False)
 
 # admin handlers
 
