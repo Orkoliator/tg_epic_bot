@@ -25,8 +25,9 @@ def check_games_data():
     for game in free_games:
         if game['promotions']:
             if game['promotions']['promotionalOffers']:
-                current_random_title = game['title']
-                break
+                if game['promotions']['promotionalOffers'][0]['promotionalOffers'][0]['discountSetting']['discountPercentage'] == 0:
+                    current_random_title = game['title']
+                    break
     if sql_module.check_games_data(current_random_title):
         return True
     else:
