@@ -2,6 +2,7 @@ from epicstore_api import EpicGamesStoreAPI
 from datetime import datetime, timezone
 import requests, os
 import sql_module, tg_module
+import json
 
 if os.name != 'nt':
     app_path_divider = '/'
@@ -57,11 +58,24 @@ def game_data_update():
                             with open(image_path, 'wb') as handler:
                                 handler.write(image)
                             image_counter += 1
+                        elif game_image['type'] == 'DieselStoreFrontWide':
+                            image = requests.get(game_image['url']).content
+                            image_path = f"{image_dir_path}{image_counter}.jpg"
+                            with open(image_path, 'wb') as handler:
+                                handler.write(image)
+                            image_counter += 1
                     end_offer_date = game['promotions']['promotionalOffers'][0]['promotionalOffers'][0]['endDate']
                     end_offer_date = date_format(end_offer_date)
-                    for page in game['catalogNs']['mappings']:
-                        if page['pageType'] == 'productHome':
-                            page_path = page['pageSlug']
+                    if len(game['catalogNs']['mappings']) != 0:
+                        for page in game['catalogNs']['mappings']:
+                            if page['pageType'] == 'productHome':
+                                page_path = page['pageSlug']
+                    else:
+                        for custom_attribute in game['customAttributes']:
+                            if custom_attribute['key'] == 'com.epicgames.app.productSlug':
+                                page_path = custom_attribute['value']
+                            else:
+                                print('[ERROR] no path found for current game')
                     sql_module.update_current_game_data(title,description,image_path,end_offer_date,page_path)
                     sql_module.update_game_tags(title,tag_list)
             if game['promotions']['upcomingPromotionalOffers']:
@@ -81,12 +95,25 @@ def game_data_update():
                             with open(image_path, 'wb') as handler:
                                 handler.write(image)
                             image_counter += 1
+                        elif game_image['type'] == 'VaultClosed':
+                            image = requests.get(game_image['url']).content
+                            image_path = f'{image_dir_path}{image_counter}.jpg'
+                            with open(image_path, 'wb') as handler:
+                                handler.write(image)
+                            image_counter += 1
                     start_offer_date = game['promotions']['upcomingPromotionalOffers'][0]['promotionalOffers'][0]['startDate']
                     start_offer_date = date_format(start_offer_date)
                     end_offer_date = game['promotions']['upcomingPromotionalOffers'][0]['promotionalOffers'][0]['endDate']
                     end_offer_date = date_format(end_offer_date)
-                    for page in game['catalogNs']['mappings']:
-                        if page['pageType'] == 'productHome':
-                            page_path = page['pageSlug']
+                    if len(game['catalogNs']['mappings']) != 0:
+                        for page in game['catalogNs']['mappings']:
+                            if page['pageType'] == 'productHome':
+                                page_path = page['pageSlug']
+                    else:
+                        for custom_attribute in game['customAttributes']:
+                            if custom_attribute['key'] == 'com.epicgames.app.productSlug':
+                                page_path = custom_attribute['value']
+                            else:
+                                print('[ERROR] no path found for upcoming game')
                     sql_module.update_upcoming_game_data(title,description,image_path,start_offer_date,end_offer_date,page_path)
                     sql_module.update_game_tags(title,tag_list)
