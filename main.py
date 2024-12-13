@@ -9,7 +9,7 @@ async def egs_update():
         await tg_module.notify_subscribers()
 
 scheduler = Scheduler(locale="pl-PL")
-egs_update_task = CronJob(name='egs_update').every().day.at("17:05").go(egs_update)
+egs_update_task = CronJob(name='egs_update').every().day.at("20:44").go(egs_update)
 
 def main():
     loop = asyncio.get_event_loop()
